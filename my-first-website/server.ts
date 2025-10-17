@@ -5,8 +5,14 @@ import { Server } from 'socket.io';
 import next from 'next';
 
 const dev = process.env.NODE_ENV !== 'production';
-const currentPort = 3000;
-const hostname = '127.0.0.1';
+
+// --- START OF CHANGES ---
+// 1. ใช้ Port ที่ Render กำหนดมาให้ หรือถ้าไม่มีให้ใช้ 3000
+const port = parseInt(process.env.PORT || "3000", 10);
+// 2. เปลี่ยน Host ให้เป็น 0.0.0.0 เพื่อให้ Render ตรวจจับได้
+const host = "0.0.0.0";
+// --- END OF CHANGES ---
+
 
 // Custom server with Socket.IO integration
 async function createCustomServer() {
@@ -40,19 +46,22 @@ async function createCustomServer() {
       }
     });
 
+    // เรียกใช้ฟังก์ชัน setupSocket ของคุณ (ผมเดาว่าคุณต้องเรียกใช้มัน)
     setupSocket(io);
 
-    // Start the server
-    server.listen(currentPort, hostname, () => {
-      console.log(`> Ready on http://${hostname}:${currentPort}`);
-      console.log(`> Socket.IO server running at ws://${hostname}:${currentPort}/api/socketio`);
+    // --- APPLYING CHANGES TO .listen() ---
+    // สั่งให้ Server เริ่มทำงานด้วย port และ host ที่แก้ไขแล้ว
+    server.listen(port, host, (err?: any) => {
+      if (err) throw err;
+      // เปลี่ยน Log ให้แสดงผลถูกต้อง
+      console.log(`> Server ready on http://${host}:${port}`);
     });
 
-  } catch (err) {
-    console.error('Server startup error:', err);
+  } catch (e) {
+    console.error(e);
     process.exit(1);
   }
 }
 
-// Start the server
+// สั่งให้เซิร์ฟเวอร์เริ่มทำงาน
 createCustomServer();
